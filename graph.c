@@ -1,8 +1,9 @@
 #include <limits.h>
+#include <stdio.h>
 
 #include "graph.h"
 
-int dijsktra_search(int vertices, float **graph, int start, int *distance, int *path)     
+int dijsktra_search(int vertices, float **graph, int start, float *distance, int *path)     
 {
     int i, j, shortest;
 
@@ -28,10 +29,14 @@ int dijsktra_search(int vertices, float **graph, int start, int *distance, int *
         while (graph[shortest][shortest] != VERTEX_NOT_USED)
             ++shortest;
 
+        printf("First vertex which is'nt already used = %d\n", shortest);
+
         /* Find lowest sum of weights available */
         for (j = shortest + 1; j < vertices; ++j)
             if (distance[shortest] > distance[j] && graph[j][j] == VERTEX_NOT_USED)
                 shortest = j;   
+
+        printf("Analyzed vertex = %d\n", shortest);
 
         /* Modify shortest paths to neighbours */
         for (j = 0; j < vertices; ++j)
@@ -43,6 +48,8 @@ int dijsktra_search(int vertices, float **graph, int start, int *distance, int *
             {
                 distance[j] = graph[shortest][j] + distance[shortest];
                 path[j] = shortest;
+                
+                printf("neighbour wage = %lf neighbour= %d\n", distance[j], path[j]);
             }
         }
 

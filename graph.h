@@ -13,6 +13,6 @@
  * @param int *path - Array of previous vertices.  
  * @return -1 if failed 0 if successful.
  */
-int dijkstra_search(int vertices, float **graph, int start, int *distance, int *path); 
+int dijkstra_search(int vertices, float **graph, int start, float *distance, int *path); 
 
 #endif
