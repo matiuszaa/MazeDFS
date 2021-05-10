@@ -1,1 +1,1 @@
-Using DFS algorithm finds a way out of maze.
+Use DFS algorithm to find a way out of maze.
