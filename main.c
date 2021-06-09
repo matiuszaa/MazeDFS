@@ -1,74 +1,119 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <stdio.h>
 #include <math.h>
 #include <stdlib.h>
 #include <time.h>
+#include <conio.h>
 
 #include "graph.h"
 
 int main(int argc, char **argv)
 {
-    int vertex;
-    int start;
-    int p_w = 0;
-    int p_e = 0;
-    float matrix[100][100];
-    int i, j;
-    float distance[100];
-    float wages[100];
-    int path[100];
-    int end;
+    int vertex, start_index, start, end, p_w, p_e, i, j; // T1*8
+    float* distance = NULL; //T2*2
+    float *weights = NULL;  
+    float **matrix;         //T3
+    int *path = NULL;       // T4
 
-    if(argc == 1)
+    if(argc == 1)  //T5(cały if)
     {
-        printf("Did you insert a file?");
+        printf("No filename given\n"); 
         return -1;
     }
 
-    FILE *in = fopen(argv[1], "r");
-    printf("give me starting vertex");
+    FILE *maze;    //T6
+
+    if ((maze = fopen(argv[1], "r")) == NULL)    //T7(cały if)
+    {
+        printf("No such file: %s\n", argv[1]);
+        return -1;
+    }
+
+    printf("Set start vertex: ");
     scanf("%d", &start);
-    printf("give me exit vertex");
+    start_index = start;
+    printf("Set stop vertex: ");
     scanf("%d", &end);
-    srand( time ( NULL ));
-    fscanf(in,"%d", &vertex);
 
-    if(vertex > 100)
-        printf("Too much vertices(no more than 100)");
-        return -1;
+    fscanf(maze,"%d", &vertex);
+    printf("%d", vertex);
 
-    printf("%d\n",vertex);
+    printf("Number of vertices: %d\n",vertex);
 
-    for(i = 0; i < vertex; ++i)
-        wages[i] = (float)rand() / RAND_MAX * 10;
-    
-    for (i = 0; i < vertex; ++i)
-        for (j = 0; j < vertex; ++j)
-        {
-            matrix[i][j] = NO_EDGE;
-        }
+    matrix = (float **)malloc( sizeof(float*) * vertex);
 
-    while (fscanf(in,"%d %d",&p_w,&p_e) == 2)
+    for (i = 0; i < vertex; ++i)    //T8 * vertex
     {
-        matrix[p_w][p_e] = (wages[p_w] + wages[p_e]) /2; 
-        matrix[p_e][p_w] = matrix[p_w][p_e];
+        matrix[i] = (float *)malloc(sizeof(float*) * vertex); //T9 *vertex
+        distance = (float *)malloc(sizeof(float) * vertex); //T10 *vertex
+        weights = (float *)malloc(sizeof(float) * vertex); //T11* vertex
+        path = (int *)malloc(sizeof(int) * vertex);  // T12* vertex
     }
 
-    for (i = 0; i < vertex; ++i)
+    srand(time(NULL));
+
+    for(i = 0; i < vertex; ++i)  //T13 *vertex
+        weights[i] = (float)rand() / RAND_MAX * 10;
+
+    for (i = 0; i < vertex; ++i) //T14 *vertex
+         for (j = 0; j < vertex; ++j) //T14 *vertex *vertex
+            matrix[i][j] = NO_EDGE; //T15 *vertex *vertex
+
+    while (fscanf(maze,"%d %d",&p_w,&p_e) == 2)   //T16 * możliwe przejscia/2
     {
-        for (j = 0; j < vertex; ++j)
-            printf("%.1lf  ", matrix[i][j]);
-        printf("\n");
+        matrix[p_w][p_e] = (weights[p_w] + weights[p_e])/2; //T17 * możliwe przejscia/2
+        matrix[p_e][p_w] = matrix[p_w][p_e]; //T18 * możliwe przejscia/2
     }
 
-    i = dijsktra_search (vertex, matrix, start, distance,  path);
-    
-    if (i!=0)
-        printf("ERROR in dijkstra_search");
+    free(weights);                                 //T19
 
-    while(path[end]!=-1)
+    for (i = 0; i < vertex; ++i)                //T20 *vertex
     {
-        printf("%d-",path[end]);
-        end=path[end];
+        for (j = 0; j < vertex; ++j)            //T21 * vertex * vertex
+            printf("%.1lf  ", matrix[i][j]);    //T22 * vertex * vertex
+        printf("\n");                           //T23 *vertex
     }
-    return 0;
+
+    i = dijkstra_search(vertex, matrix, start, distance,  path);  //O(vertex^2) 
+
+    if (i != 0) { //T48
+        printf("Error in dijkstra_search"); //T49
+        for (i = 0; i < vertex; ++i) //T50 * vertex
+            free(matrix[i]); //T51 * vertex
+
+        free(matrix);// T52
+        free(distance);// T53
+        free(path); //T 54
+        fclose(maze); //T55
+        return -1; // T56
+    }
+
+    printf("Distance: %f\n", distance[end]);  //T57
+    printf("Shortest path from end to start: \n%d", end); //T58
+
+    while (path[end] != -1) //W najgorszym wypadku vertex *T59
+     {
+        printf("-%d",path[end]);// T60 *vertex
+        end = path[end]; // T61 *vertex
+    }
+    if (start_index != end) // T62 
+    {
+        system("cls"); // T63 
+        printf("This maze doesn't have exit\n"); // T64 
+    }
+    printf("\n"); // T65
+
+    for (i = 0; i < vertex; ++i) // T66 *vertex
+        free(matrix[i]); // T67 *vertex
+
+    free(matrix); // T68
+    free(distance); // T69
+    free(path);// T70
+
+    fclose(maze);// T71
+
+    return 0; //T 72
 }
+// Tutaj także największa złożoność to vertex ^2 więc tylko taką rozpatrujemy, ale musimy jeszcze doliczyc złozoność od innego czynnika
+// O(vertex^2(T21+T22+T14+T15)+ liczbaprzejsc(krawędzi)/2(T16+T17+T18)+O(vertex^2)(z funkcji)) == O(vertex^2 + liczbaprzejsc)
